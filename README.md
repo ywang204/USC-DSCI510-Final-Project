@@ -1,9 +1,12 @@
 # Game Sentiment Analysis Project
 
 ## Team Members
-* **Name**: [Your Name]
-* **USC ID**: [Your USC ID]
-* **Email**: [Your Email]
+1.* **Name**: Yuhan Wang
+* **USC ID**: 8914950372
+* **Email**: ywang204@usc.edu
+2.* **Name**: Kaiyue Deng
+* **USC ID**: 7459633091
+* **Email**: kaiyuede@usc.edu
 
 ## Project Description
 This project investigates the correlation between **textual sentiment in game reviews** and **numerical ratings**. 
