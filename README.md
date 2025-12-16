@@ -3,7 +3,7 @@
 Explaining and Predicting Video Game Review Scores Using Machine Learning
 
 ## Team Members
-1. **Name**: Yuhan Wang
+1.**Name**: Yuhan Wang
 **USC ID**: 8914950372
 **Email**: ywang204@usc.edu
 
