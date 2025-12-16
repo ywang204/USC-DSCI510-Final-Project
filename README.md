@@ -8,12 +8,14 @@ Explaining and Predicting Video Game Review Scores Using Machine Learning
 **Email**: ywang204@usc.edu
 
 2.**Name**: Kaiyue Deng
-**USC ID**: [Put Your USC ID Here]
-**Email**: [Put Your Email Here]
+**USC ID**: 7459633091
+**Email**: kaiyuede@usc.edu
 
 ## Project Description
-This project analyzes the relationship between game reviews' textual sentiment and their numerical ratings using VADER sentiment analysis and Linear Regression. 
-It scrapes data, cleans the text, performs aspect-based sentiment analysis, audits the model for bias, and visualizes the results.
+This project investigates the correlation between textual sentiment in game reviews and numerical ratings. 
+By utilizing VADER sentiment analysis, we extract aspect-based sentiments (e.g., Gameplay, Visuals, Narrative) from user and critic reviews. 
+We implemented a Linear Regression model with Outlier Removal to predict game scores based on these sentiment features. 
+The findings aim to reveal how specific aspects of a game contribute to its overall success and help identify "coherent" reviews where text aligns with the score.
 
 ## Directory Structure
 ```text
