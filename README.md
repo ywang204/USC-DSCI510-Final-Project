@@ -21,23 +21,40 @@ The findings aim to reveal how specific aspects of a game contribute to its over
 ```text
 github_repo_structure/
 ├── data/
-│   ├── raw/             # Raw data and attribution keywords
-│   └── processed/       # Cleaned and analyzed CSV files
+│   ├── raw/
+│   │   ├── games_dataset.csv            # Scraped metadata and reviews
+│   │   ├── attribution_dimensions_12.csv # (Self-curated) Keywords for Aspect-Based Sentiment Analysis
+│   │   ├── developer_region_mapping.csv  # (Self-curated) Mapping of developers to global regions
+│   │   └── publisher_region_mapping.csv  # (Self-curated) Mapping of publishers to global regions
+│   └── processed/       
+│       ├── processed_reviews.csv        # Intermediate data with cleaned text
+│       └── analyzed_reviews.csv         # Final data with VADER scores and regions
 ├── results/
-│   ├── final_report.pdf # The final project report
+│   ├── final_report.pdf 
 │   ├── regression_coefficients.csv
-│   └── figures/         # Generated visualizations
+│   └── figures/         
 ├── src/
 │   ├── get_data.py
 │   ├── clean_data.py
 │   ├── run_analysis.py
 │   ├── visualize_results.py
-│   ├── regression.py    # (Crucial) The outlier removal regression model
+│   ├── regression.py    
 │   └── utils/
-├── requirements.txt     # Python dependencies
+├── requirements.txt     
 ├── project_proposal.pdf
 └── README.md
 ```
+
+## Data Curation & Custom Assets
+To enhance the depth of our analysis, we manually curated three supplementary datasets located in `data/raw/`:
+
+1.  **`attribution_dimensions_12.csv`**:
+    * A custom dictionary of aspect-related keywords (e.g., "plot", "story", "graphics", "fps").
+    * Used to guide the **Aspect-Based Sentiment Analysis**, allowing VADER to calculate specific sentiments for dimensions like *Gameplay, Visuals, Narrative, and Audio*.
+
+2.  **`developer_region_mapping.csv` & `publisher_region_mapping.csv`**:
+    * Self-organized mapping files that classify hundreds of game studios and publishers into major global regions (e.g., *North America, Europe, Japan*).
+    * These files enable the **Regional Boxplot Analysis** and serve as categorical features in our regression model to detect regional bias in ratings.
 
 ## Setup Instructions
 ```text
