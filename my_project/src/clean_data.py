@@ -67,17 +67,17 @@ def flatten_reviews(games_data):
     
     for game in games_data:
         game_title = game.get("Title", "Unknown")
-        game_genre = game.get("Genre", "Unknown")
+        developer = game.get("Developer", "Unknown") 
         
-        def extract_reviews(review_list, r_type):
-            if isinstance(review_list, list):
-                for review in review_list:
+        def extract_reviews(review_list, user_type):
+            for r in review_list:
+                if r.get("text"):
                     all_reviews.append({
                         "Game": game_title,
-                        "Genre": game_genre,
-                        "Type": r_type,
-                        "Score": review.get("score"),
-                        "Raw Text": review.get("text")
+                        "Developer": developer, 
+                        "Type": user_type,
+                        "Score": r.get("score"),
+                        "Raw Text": r.get("text")
                     })
 
         if "Critic Reviews Data" in game:
