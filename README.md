@@ -1,10 +1,11 @@
 # Game Sentiment Analysis Project
 
 ## Team Members
-1.* **Name**: Yuhan Wang
+1.**Name**: Yuhan Wang
 * **USC ID**: 8914950372
 * **Email**: ywang204@usc.edu
-2.* **Name**: Kaiyue Deng
+* 
+2.**Name**: Kaiyue Deng
 * **USC ID**: 7459633091
 * **Email**: kaiyuede@usc.edu
 
