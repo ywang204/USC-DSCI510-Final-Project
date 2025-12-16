@@ -6,9 +6,20 @@ import os
 import re
 from bs4 import BeautifulSoup
 import random
-from utils.paths import DATA_RAW, TARGET_GAME_LIST, ensure_dir
+from typing import List, Dict, Optional, Any
 
-def scrape_titles(start_page, end_page):
+API_KEY = "9c980291eemsh81ffc14c0dbab38p1ed876jsn2012d20207db"
+API_HOST = "metacritic-api1.p.rapidapi.com"
+API_URL = "https://metacritic-api1.p.rapidapi.com/game"
+
+def get_paths():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    data_raw = os.path.join(project_root, 'data', 'raw')
+    os.makedirs(data_raw, exist_ok=True)
+    return data_raw
+
+def scrape_titles(start_page: int, end_page: int) -> List[str]:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Referer': 'https://www.google.com/'
@@ -33,14 +44,15 @@ def scrape_titles(start_page, end_page):
                         clean_title = raw_text.split('.', 1)[-1].strip()                      
                         titles.append(clean_title)
             else:
-                print(f"  Failed to retrieve page {page}. Status code: {response.status_code}")               
+                print(f"Failed to retrieve page {page}. Status code: {response.status_code}")               
         except Exception as e:
             print(f"Error on page {page}: {e}")           
+        
         sleep_time = random.uniform(2.0, 4.0)
         time.sleep(sleep_time)        
     return titles
     
-def generate_titles():
+def generate_titles() -> None:
     all_target_games = []
     print("\n--- Phase 1: Collecting Top Tier Games ---")
     all_target_games.extend(scrape_titles(1, 4))
@@ -54,50 +66,38 @@ def generate_titles():
     unique_games = list(set(all_target_games))
     print(f"\nTotal unique games collected: {len(unique_games)}")
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir)
-    output_dir = os.path.join(project_root, 'data', 'raw')
-    
-    os.makedirs(output_dir, exist_ok=True)
-
-    config_path = os.path.join(output_dir, "game_config.py")
+    output_dir = get_paths()
+    config_path = os.path.join(output_dir, "target_game_list.json")
 
     print(f"Saving game list to: {config_path}")
 
     with open(config_path, "w", encoding="utf-8") as f:
-        f.write(f"TARGET_GAMES = {json.dumps(unique_games, indent=4)}")
+        json.dump(unique_games, f, indent=4)
         
-    print(f"\nGenarated Successfully")
+    print(f"\nGenerated Successfully")
+
+def load_target_games() -> List[str]:
+    output_dir = get_paths()
+    target_list_path = os.path.join(output_dir, "target_game_list.json")
     
-generate_titles()
-    
-API_KEY = "9c980291eemsh81ffc14c0dbab38p1ed876jsn2012d20207db"
-API_HOST = "metacritic-api1.p.rapidapi.com"
-API_URL = "https://metacritic-api1.p.rapidapi.com/game"
+    if os.path.exists(target_list_path):
+        try:
+            with open(target_list_path, 'r', encoding='utf-8') as f:
+                games = json.load(f)
+            print(f"Loaded successfully, {len(games)} games ready for scraping.")
+            return games
+        except Exception as e:
+            print(f"Error loading JSON list: {e}")
+            return []
+    else:
+        print(f"Target list not found at {target_list_path}. Generating now...")
+        generate_titles()
+        if os.path.exists(target_list_path):
+            with open(target_list_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return []
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-output_dir = os.path.join(project_root, 'data', 'raw')
-os.makedirs(output_dir, exist_ok=True)
-
-target_list_path = os.path.join(output_dir, "target_game_list.json")
-TARGET_GAMES = []
-if os.path.exists(target_list_path):
-    try:
-        with open(target_list_path, 'r', encoding='utf-8') as f:
-            TARGET_GAMES = json.load(f)
-        print(f"Loaded successfully, {len(TARGET_GAMES)} games ready for scraping from {target_list_path}")
-    except Exception as e:
-        print(f"Error loading JSON list: {e}")
-else:
-    try:
-        from game_config import TARGET_GAMES
-        print(f"Loaded from config file, {len(TARGET_GAMES)} games ready.")
-    except ImportError:
-        print(f"Error: Could not find target_game_list.json at {target_list_path} nor game_config.py")
-        TARGET_GAMES = []
-
-def fetch_raw_data(game_title):
+def fetch_raw_data(game_title: str) -> Optional[Dict[str, Any]]:
     slug = game_title.lower()
     slug = re.sub(r'[^a-z0-9\s-]', '', slug)
     slug = slug.strip().replace(' ', '-')
@@ -111,33 +111,33 @@ def fetch_raw_data(game_title):
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
-            print(f" Can find game: {slug}")
+            print(f"Cannot find game: {slug}")
             return None
         else:
-            print(f"Status: {response.status_code}): {response.text}")
+            print(f"Status: {response.status_code}: {response.text}")
             return None
     except Exception as e:
-        print(f"Error{e}")
+        print(f"Error: {e}")
         return None
 
-def clean_data(data):
+def clean_data(data: Dict[str, Any]) -> Dict[str, Any]:
     title = data.get("title", "Unknown")
     platform = data.get("platform", "Unknown")
     release_date = data.get("release_date", "Unknown")
     genre = data.get("genre", "Unknown")   
     developers_list = data.get("developer", [])
-    developer = ", ".join(developers_list)
+    developer = ", ".join(developers_list) if isinstance(developers_list, list) else str(developers_list)
     publishers_list = data.get("publisher", [])
-    publisher = ", ".join(publishers_list)
+    publisher = ", ".join(publishers_list) if isinstance(publishers_list, list) else str(publishers_list)
 
-    if "critic_reviews" in data:
+    if "critic_reviews" in data and isinstance(data["critic_reviews"], dict):
         metascore = data["critic_reviews"].get("metascore")
         critic_review_count = data["critic_reviews"].get("review_count")
     else:
         metascore = None
         critic_review_count = 0
     
-    if "user_reviews" in data:
+    if "user_reviews" in data and isinstance(data["user_reviews"], dict):
         user_score = data["user_reviews"].get("user_score")
         user_review_count = data["user_reviews"].get("review_count")
     else:
@@ -145,26 +145,30 @@ def clean_data(data):
         user_review_count = 0
     
     critic_details = []
-    if "critic_reviews" in data and "latest_reviews" in data["critic_reviews"]:
-        for review in data["critic_reviews"]["latest_reviews"]:
-            if review.get("review_text"):
-                critic_details.append({
-                    "score": review.get("rating"),  # Usually 0-100
-                    "text": review.get("review_text"),
-                })
+    if "critic_reviews" in data and isinstance(data["critic_reviews"], dict):
+        latest = data["critic_reviews"].get("latest_reviews", [])
+        if isinstance(latest, list):
+            for review in latest:
+                if review.get("review_text"):
+                    critic_details.append({
+                        "score": review.get("rating"),
+                        "text": review.get("review_text"),
+                    })
 
     user_details = []
-    if "user_reviews" in data and "latest_reviews" in data["user_reviews"]:
-        for review in data["user_reviews"]["latest_reviews"]:
-            if review.get("review_text"):
-                user_details.append({
-                    "score": review.get("rating"), # Usually 0-10
-                    "text": review.get("review_text"),
-                })
+    if "user_reviews" in data and isinstance(data["user_reviews"], dict):
+        latest = data["user_reviews"].get("latest_reviews", [])
+        if isinstance(latest, list):
+            for review in latest:
+                if review.get("review_text"):
+                    user_details.append({
+                        "score": review.get("rating"),
+                        "text": review.get("review_text"),
+                    })
 
     return {
         "Title": title,
-        "Platform":platform,
+        "Platform": platform,
         "Release Date": release_date,
         "Genre": genre,
         "Developer": developer,
@@ -178,15 +182,18 @@ def clean_data(data):
     }
 
 def main():
-    all_games_data = []
-    
+    output_dir = get_paths()
     print(f"Starting fetch process using output directory: {output_dir}")
     
-    if not TARGET_GAMES:
+    target_games_list = load_target_games()
+    
+    if not target_games_list:
         print("No target games found. Exiting.")
         return
     
-    for game in TARGET_GAMES:
+    all_games_data = []
+    
+    for game in target_games_list:
         raw_json = fetch_raw_data(game)       
         if raw_json:
             if isinstance(raw_json, list) and len(raw_json) > 0:
@@ -194,29 +201,29 @@ def main():
             elif isinstance(raw_json, dict):
                 target_data = raw_json
             else:
-                print(f" No data of '{game}' ")
+                print(f"No data for '{game}'")
                 continue                
             try:
-                cleaned_data = clean_data(target_data)
-                all_games_data.append(cleaned_data)
-                print(f"Successfully fetch:{cleaned_data.get('Title')}")
+                cleaned = clean_data(target_data)
+                all_games_data.append(cleaned)
+                print(f"Successfully fetched: {cleaned.get('Title')}")
             except Exception as parse_error:
-                print(f"Error:{parse_error}")
-        time.sleep(2)
+                print(f"Error parsing {game}: {parse_error}")
+        
+        time.sleep(1.5)
 
     if all_games_data:
         df = pd.DataFrame(all_games_data)
         csv_path = os.path.join(output_dir, "games_dataset.csv")
         df.to_csv(csv_path, index=False)
-        print(f"\n Data in csv:{csv_path}")
+        print(f"\nData saved in csv: {csv_path}")
         
         json_path = os.path.join(output_dir, "games_dataset.json")
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(all_games_data, f, ensure_ascii=False, indent=4)
-        print(f"\n Data in json: {json_path}")
-        
+        print(f"Data saved in json: {json_path}")
     else:
-        print("\n No data fetched")
+        print("\nNo data fetched")
 
 if __name__ == "__main__":
     main()
